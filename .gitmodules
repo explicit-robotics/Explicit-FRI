@@ -1,3 +1,4 @@
 [submodule "Libraries/Explicit-cpp"]
 	path = Libraries/Explicit-cpp
 	url = https://github.com/explicit-robotics/Explicit-cpp.git
+	branch = main
