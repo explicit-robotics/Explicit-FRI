@@ -1,3 +1,4 @@
 build-src-*
 *.user
 KUKA_app
+Debug

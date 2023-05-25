@@ -22,14 +22,6 @@ add_executable(${PROJECT_NAME} ${sourceFiles} ${headerFiles})
 
 ##### LINKING #####
 
-## Look for MATH_LIBRARY, otherwise cmath doesn't compile!
-find_library(MATH_LIBRARY m)
-if(MATH_LIBRARY)
-    target_link_libraries(${PROJECT_NAME} ${MATH_LIBRARY})
-endif()
-
-#set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
 set(EXPLICIT_CPP_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/../../../Libraries/Explicit-cpp/lib/libExplicit-cpp.so" CACHE STRING "Explicit-cpp library")
 set(FRI_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/../../../Libraries/myFRIClient/lib/libFRIClient.a" CACHE STRING "FRI library")
 
