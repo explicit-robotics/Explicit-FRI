@@ -1,7 +1,7 @@
 # Expplicit-FRI
-This repository contains Exp[licit]-FRI -- a software to control robots via the KUKA FRI interface (C++). 
+This repository contains Exp[licit]-FRI -- a software to control KUKA robots via the FRI interface (C++). 
 
-The current version of this software is in active development, i.e., might be unstable. A formal announcement will be made once the first stable version of Exp[licit]-cpp is complete.
+The current version of Exp[licit]-cpp is in active development, i.e., might be unstable. A formal announcement will be made once the first stable version of Exp[licit]-cpp is complete.
 
 # Library structure
 While any folder structure can be created by adapting the CMAKE-file of your Client Application, this is the initial library structure:
@@ -9,7 +9,7 @@ While any folder structure can be created by adapting the CMAKE-file of your Cli
 Explicit-FRI (head folder)<br />
 &nbsp;&nbsp;&nbsp;|--- Libraries<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- Explicit-cpp<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- Eigen<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- Eigen<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- myFRIClient<br />
 &nbsp;&nbsp;&nbsp;|--- ClientApplications<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- basic_app
