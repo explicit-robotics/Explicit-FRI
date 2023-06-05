@@ -14,7 +14,7 @@ Explicit-FRI (head folder)<br />
 &nbsp;&nbsp;&nbsp;|--- ClientApplications<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|--- basic_app
 
-1) *Explicit-cpp*: This software contains a submodule of [Exp[licit]-cpp](https://github.com/explicit-robotics/Explicit-cpp). Exp[licit]-cpp in turn contains a submodule of [Eigen version 3.4.0](https://gitlab.com/libeigen/eigen/-/releases/3.4.0). To update the submodules, type:
+## *Explicit-cpp*: This software contains a submodule of [Exp[licit]-cpp](https://github.com/explicit-robotics/Explicit-cpp). Exp[licit]-cpp in turn contains a submodule of [Eigen version 3.4.0](https://gitlab.com/libeigen/eigen/-/releases/3.4.0). To update the submodules, type:
 ```
     git submodule update --init --recursive
 ```
