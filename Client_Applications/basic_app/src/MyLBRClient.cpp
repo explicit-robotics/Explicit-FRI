@@ -67,7 +67,7 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
 
     /** Initialization */
 
-    // THIS POSITION HAS TO BE THE SAME AS FOR THE JAVA APPLICATION!!
+    // THIS CONFIGURATION MUST BE THE SAME AS FOR THE JAVA APPLICATION!!
     qInitial[0] = -2.46  * M_PI/180;
     qInitial[1] = 28.56  * M_PI/180;
     qInitial[2] = 17.54  * M_PI/180;
@@ -114,8 +114,6 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
     printf( "Robot '" );
     printf( "%s", myLBR->Name );
     printf( "' initialised. Ready to rumble! \n\n" );
-
-
 
 }
 
@@ -267,11 +265,12 @@ void MyLBRClient::command()
     // To get initial values for first time you are in the control loop
     //}
 
+    // Forward Kinematics
     static auto start = std::chrono::steady_clock::now( );
     H = myLBR->getForwardKinematics( q );
     static auto end = std::chrono::steady_clock::now( );
 
-    std::cout << "Q Value: " << q << std::endl;
+    std::cout << "q values: " << q << std::endl;
 
     std::cout << "Elapsed time for Forward Kinematics: "
               << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
@@ -290,41 +289,16 @@ void MyLBRClient::command()
 
     std::cout << J << std::endl;
 
-
     // Mass matrix
     start = std::chrono::steady_clock::now( );
     M = myLBR->getMassMatrix( q );
-    M(6,6) = 45 * M(6,6);                       // A small trick: correct mass of last body to avoid high accelerations
     end = std::chrono::steady_clock::now( );
 
-    std::cout << "Elapsed time for Mass Matrix, Classic: "
+    std::cout << "Elapsed time for Mass Matrix: "
               << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
               << " us" << std::endl;
 
     std::cout << M << std::endl;
-
-    start = std::chrono::steady_clock::now( );
-    M = myLBR->getMassMatrix2( q );
-    M(6,6) = 45 * M(6,6);                       // A small trick: correct mass of last body to avoid high accelerations
-    end = std::chrono::steady_clock::now( );
-
-    std::cout << "Elapsed time for Mass Matrix, Closed form: "
-              << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
-              << " us" << std::endl;
-
-    std::cout << M << std::endl;
-
-    if(currentTime < sampleTime){
-
-        //        cout << "H: " << endl;
-        //        cout << H << endl;
-        //        cout << "J: " << endl;
-        //        cout << J << endl;
-        //        cout << "M: " << endl;
-        //        cout << M << endl;
-
-    }
-
 
 
     // ************************************************************
@@ -332,19 +306,10 @@ void MyLBRClient::command()
     // ************************************************************
 
 
-
     // ************************************************************
     // Control torque
 
     // tau_motion = ...
-
-    // ************************************************************
-    // Include joint limits
-
-    //Eigen::VectorXd SJSTorque = myLBR->addIIWALimits( myLBR, q, dq, M_inv, tau_motion, 0.004 );
-    //tau_motion = SJSTorque;
-
-
 
     // ************************************************************
     // YOUR CODE ENDS HERE!

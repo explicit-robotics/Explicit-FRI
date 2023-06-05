@@ -31,7 +31,6 @@ ${FRI_LIBRARY}
 )
 
 
-
 ##### SOME PARTS OF THE CODE GO INTO AN ADDITIONAL LIBRARY #####
 
 target_link_libraries(${PROJECT_NAME} ${linkLibraries})
