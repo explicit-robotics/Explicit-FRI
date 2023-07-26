@@ -68,16 +68,16 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
     /** Initialization */
 
     // THIS CONFIGURATION MUST BE THE SAME AS FOR THE JAVA APPLICATION!!
-    qInitial[0] = -2.46  * M_PI/180;
-    qInitial[1] = 28.56  * M_PI/180;
-    qInitial[2] = 17.54  * M_PI/180;
-    qInitial[3] = -87.36 * M_PI/180;
-    qInitial[4] = -7.82  * M_PI/180;
-    qInitial[5] = 75.56  * M_PI/180;
-    qInitial[6] = -9.01  * M_PI/180;
+    qInitial[0] =   0.00  * M_PI/180;
+    qInitial[1] =  28.56  * M_PI/180;
+    qInitial[2] =  17.54  * M_PI/180;
+    qInitial[3] = -87.36  * M_PI/180;
+    qInitial[4] =  -7.82  * M_PI/180;
+    qInitial[5] =  75.56  * M_PI/180;
+    qInitial[6] =  -9.01  * M_PI/180;
 
     // Use Explicit-cpp to create your robot
-    myLBR = new iiwa14( 1, "Trey");
+    myLBR = new iiwa14( 1, "Dwight");
     myLBR->init( );
 
     // Current position and velocitz
