@@ -1,0 +1,1 @@
+:-1: error: CMakeFiles/ChristoffelSymbols.dir/MyLBRClient.cpp.o: warning: relocation against `_ZTVN5boost6detail16thread_data_baseE' in read-only section `.text._ZN5boost6detail16thread_data_baseC2Ev[_ZN5boost6detail16thread_data_baseC5Ev]'
