@@ -41,9 +41,6 @@ or otherwise, without the prior written consent of KUKA Roboter GmbH.
 
 #include "friLBRClient.h"
 #include "exp_robots.h"
-#include "exp_trajs.h"
-
-#include <fstream>
 
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
@@ -119,20 +116,6 @@ private:
     // Time parameters for control loop
     double sampleTime;
     double currentTime;
-    double t_pressed;
-
-    int N_data;
-    int N_curr;
-    int n_step;
-
-    Eigen::MatrixXd q_data;
-    Eigen::VectorXd q_init0;
-    Eigen::VectorXd q_init1;
-
-    bool is_pressed;
-
-    // Minimum-jerk trajectory to move to that location
-    MinimumJerkTrajectory *mjt_q;
 
 
     // Choose the body you want to control and the position on this body
@@ -162,9 +145,6 @@ private:
     Eigen::MatrixXd Kr;
     Eigen::MatrixXd K;
     Eigen::MatrixXd Kq;
-    Eigen::MatrixXd Kq_last;
-    Eigen::MatrixXd Bq_last;
-    Eigen::MatrixXd K_kin;
     Eigen::MatrixXd Bq;
     Eigen::MatrixXd Kq_thread;
     Eigen::MatrixXd Bq_thread;
@@ -200,6 +180,19 @@ private:
     boost::mutex mutex;
     
     void call_dJacobians();
+    
+    struct ImpedanceParameters{
+    	
+        Eigen::MatrixXd K_q;
+        Eigen::MatrixXd B_q;
+
+        ImpedanceParameters(){
+            K_q = Eigen::MatrixXd::Zero(7,7);
+            B_q = Eigen::MatrixXd::Zero(7,7);
+    	}
+    };
+    ImpedanceParameters *myImpedanceParams;
+
 
 };
 

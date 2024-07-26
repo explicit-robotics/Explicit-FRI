@@ -67,76 +67,6 @@ static double filterOutput[7][NCoef+1]; //output samples. Static variables are i
 static double filterInput[7][NCoef+1]; //input samples. Static variables are initialised to 0 by default.
 
 
-
-//******************************************************************************
-// A Function to read a CSV file and save it as a 2D matrix
-// Dimensions for row x col are 7 x N, where 7 (row) is the degrees of freedom of the KUKA, N (col) is the number of data points
-Eigen::MatrixXd readCSV( const string& filename )
-{
-    ifstream file( filename );
-    if( !file.is_open( ) )
-    {
-        cerr << "Error: Couldn't open the file: " << filename << endl;
-        exit( 1 );
-    }
-
-    // Read the values as 2D vector array
-    vector<vector<double>> values;
-
-    string line;
-    int lineNum = 0;
-    int numCols = 0;
-
-    while ( getline( file, line ) )
-    {
-        ++lineNum;
-        stringstream ss( line );
-        string cell;
-        vector<double> row;
-        while ( getline( ss, cell, ',' ) )
-        {
-            try
-            {
-                row.push_back( stod( cell ) );
-            } catch ( const std::invalid_argument& e )
-            {
-                cerr << "Error: Invalid argument at line " << lineNum << ", column: " << row.size() + 1 << endl;
-                exit( 1 );
-            }
-        }
-
-        values.push_back( row );
-        if ( numCols == 0 )
-        {
-            numCols = row.size( );
-        }
-        else if ( row.size() != numCols )
-        {
-            cerr << "Error: Inconsistent number of columns in the CSV file." << endl;
-            exit( 1 );
-        }
-    }
-
-    // Error if CSV File is empty
-    if ( values.empty( ) )
-    {
-        cerr << "Error: CSV file is empty." << endl;
-        exit(1);
-    }
-
-    // Create Eigen Matrix
-    Eigen::MatrixXd mat( values.size(), numCols );
-    for (int i = 0; i < values.size(); i++)
-    {
-        for (int j = 0; j < numCols; j++)
-        {
-            mat(i, j) = values[i][j];
-        }
-    }
-    return mat;
-}
-
-
 //******************************************************************************
 MyLBRClient::MyLBRClient(double freqHz, double amplitude){
 
@@ -155,18 +85,13 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
     myLBR = new iiwa14( 1, "Trey");
     myLBR->init( );
 
-    // Current joint configuration and velocity
+    // Current position and velocitz
     q  = Eigen::VectorXd::Zero( myLBR->nq );
     dq = Eigen::VectorXd::Zero( myLBR->nq );
-
-    // Desired joint configuration
-    q_0 = Eigen::VectorXd::Zero( myLBR->nq );
 
     // Time variables for control loop
     currentTime = 0;
     sampleTime = 0;
-    n_step = 0;         // Number of current time steps
-    t_pressed = 0;      // Time after the button push
 
     // Initialize joint torques and joint positions (also needed for waitForCommand()!)
     for( int i=0; i < myLBR->nq; i++ )
@@ -182,30 +107,6 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
     tau_prev_prev = Eigen::VectorXd::Zero( myLBR->nq );
     tau_total     = Eigen::VectorXd::Zero( myLBR->nq );
 
-    // Read the joint value data
-    // FILL-IN YOUR CSV FILE ADDRESS!!
-    q_data = readCSV( "/home/newman_lab/Desktop/Explicit-FRI/Client_Applications/cs_app/data/kin_stiff_test1.csv" );
-
-    // Number of joint-trajectory data points, and its current iteration
-    N_data = q_data.cols( );
-    N_curr = 0;
-
-    // Get the initial joint position from the data
-    q_init1 = q_data.col( 0 );
-
-    // Also get the initial joint position of current joint position
-    q_init0 = Eigen::VectorXd::Zero( myLBR->nq );
-    for( int i = 0; i < myLBR->nq; i++ )
-    {
-        q_init0( i ) = qInitial[ i ];
-    }
-
-    // Generate a minimum-jerk trajectory in joint-space to move to the starting location
-    mjt_q = new MinimumJerkTrajectory( 7, q_init0, q_init1, 5.0, 1.0 );
-
-    // Boolean variable of button pressed
-    is_pressed = false;
-
 
     // ************************************************************
     // INITIALIZE YOUR VECTORS AND MATRICES HERE
@@ -219,39 +120,37 @@ MyLBRClient::MyLBRClient(double freqHz, double amplitude){
     tauExt  = Eigen::VectorXd::Zero( myLBR->nq  );
     f_ext_0  = Eigen::VectorXd::Zero( 6 );
 
-    // Cartesian stiffness
     Kp = Eigen::MatrixXd::Identity( 3, 3 );
-    Kp = 850 * Kp;
+    Kp = 400 * Kp;
     K = Eigen::MatrixXd::Zero( 6, 6 );
-    for ( int i=0; i<3; i++ )
+    for (int i=0; i<3; i++)
     {
-        K( i, i ) = Kp( i, i );
+        K(i,i) = Kp(i,i);
     }
 
     Kr = Eigen::MatrixXd::Identity( 3, 3 );
-    Kr = 50 * Kr;
+    Kr = 20 * Kr;
     for (int i=0; i<3; i++)
     {
-        K( i+3, i+3 ) = Kr( i, i );
+        K(i+3,i+3) = Kr(i,i);
     }
 
-    // Joint impedances
     Kq = Eigen::MatrixXd::Identity( 7, 7 );
-    Kq = 100 * Kq;
+    Kq = 10 * Kq;
     Bq = Eigen::MatrixXd::Identity( 7, 7 );
-    Bq = 10 * Bq;
-    Kq_last = Kq;
-    Bq_last = Bq;
-
-    Kq_thread = Kq;
-    Bq_thread = Bq;
-
-    K_kin = Eigen::MatrixXd::Zero(7,7);
+    Bq = 5 * Bq;
+    Kq_thread = Eigen::MatrixXd::Zero( 7, 7 );
+    Bq_thread = Eigen::MatrixXd::Zero( 7, 7 );
     K_fin_thread = Eigen::MatrixXd::Zero( 7, 7 );
     Kq_thread = Eigen::MatrixXd::Zero( 7, 7 );
+    q_0 = Eigen::VectorXd::Zero( myLBR->nq );
 
-    // Lock mutex initially
     mutex.unlock();
+
+    // Initialize Impedance Parameters
+    myImpedanceParams = new ImpedanceParameters();
+    myImpedanceParams->K_q = Kq;
+    myImpedanceParams->B_q = Bq;
 
     // Initial print
     printf( "Exp[licit](c)-cpp-FRI, https://explicit-robotics.github.io \n\n" );
@@ -408,19 +307,15 @@ void MyLBRClient::command()
         tauExt[i] = tauExternal[i];
     }
 
-    // Calculate the virtual trajectory
-    q_0 = mjt_q->getPosition( currentTime );
-
-    // Add the delta joint q0 position via data, to replay the variable
-    // If button pressed, and after 2-seconds
-    if( is_pressed && t_pressed >= 2 )
-    {
-        q_0 += q_data.col( N_curr ) - q_init1;
-    }
-
 
     // ************************************************************
     // Calculate kinematics and dynamics
+
+    if(currentTime < sampleTime)
+    {
+        // To get initial values for first time you are in the control loop
+        q_0 = q;
+    }
 
     // Jacobian
     J = myLBR->getHybridJacobian( q );
@@ -429,18 +324,6 @@ void MyLBRClient::command()
     M = myLBR->getMassMatrix( q );
     M( 6, 6 ) = 40 * M( 6, 6 );
     M_inv = this->M.inverse();
-
-    if(currentTime < sampleTime)
-    {
-        // Joint stiffness from initial configuration to start of recorded joint path
-        Kq = J.transpose() * K * J;
-
-        // Handle nullspace through simple least squares method
-        Kq = Kq + 20 * Eigen::MatrixXd::Identity(7,7);
-    }
-
-    // ************************************************************
-    // Calculate external forces
 
     // Lambda least-squares
     double k = 0.01;
@@ -456,60 +339,35 @@ void MyLBRClient::command()
     // ************************************************************
     // Impedance optimization
 
+    // INITIALIZE K AND B BEFORE FIRST THREAD IS FINISHED!
+
     if(currentTime < sampleTime)
     {
         impedanceOptimizerThread = boost::thread(&MyLBRClient::impedanceOptimizer, this);
         impedanceOptimizerThread.detach();
     }
 
-    // Store last impedance values
-    Kq_last = Kq;
-    Bq_last = Bq;
+    mutex.lock();
+    // CHECK THIS!!!!!!!!!!!!!!!!!!!!
+    Kq_thread = Kq_thread;
+    Bq_thread = Bq_thread;
+    K_kin_thread = K_kin_thread;
 
-    // Only update impedances for recorded trajectory
-    if( is_pressed && t_pressed >= 2 )
-    {
-        mutex.lock();
+    mutex.unlock();
 
-        Kq = Kq_thread;
-        Bq = Bq_thread;
-        K_kin = K_kin_thread;
+    Kq = Kq_thread;
+    Bq = Bq_thread;
+    Eigen::MatrixXd K_kin = K_kin_thread;
 
-        mutex.unlock();
-    }
-
-    // Safety check (DELETE LATER!)
-    for (int i=0; i < 7; i++)
-    {
-        for (int j=0; j < 7; j++)
-        {
-            if( Kq(i,j) >= 1e+5 )
-            {
-                Kq(i,j) = Kq_last(i,j);
-                cout << "************************************************HERE*************************************" << endl;
-                cout << "************************************************HERE*************************************" << endl;
-                cout << "************************************************HERE*************************************" << endl;
-                cout << "************************************************HERE*************************************" << endl;
-                cout << "************************************************HERE*************************************" << endl;
-            }
-
-            if( Bq(i,j) >= 1e+5 )
-            {
-                Bq(i,j) = Bq_last(i,j);
-            }
-        }
-    }
-
-    // Just some plots for now
     Eigen::MatrixXd Kasym = Kq - Kq.transpose( );
     Eigen::MatrixXd Basym = Bq - Bq.transpose( );
 
     //    cout << "K_kin:" << endl;
     //    cout << K_kin << endl;
-    cout << "Kq:" << endl;
-    cout << Kq << endl;
-    cout << "Bq:" << endl;
-    cout << Bq << endl;
+    //    cout << "Kq:" << endl;
+    //    cout << Kq << endl;
+    //    cout << "Bq:" << endl;
+    //    cout << Bq << endl;
 
     //    cout << "J: " << endl;
     //    cout << J << endl;
@@ -522,10 +380,16 @@ void MyLBRClient::command()
     //    cout << "B asymmetric part:" << endl;
     //    cout << Basym.maxCoeff( ) << endl;
 
+    myImpedanceParams->K_q = Kq;
+    myImpedanceParams->B_q = Bq;
+
 
     // ************************************************************
     // Control torque
-    tau_motion = Kq * (q_0 - q) - Bq * dq;
+    tau_motion = myImpedanceParams->K_q * (q_0 - q) - myImpedanceParams->B_q * dq;
+
+    //    cout << "tau_motion:" << endl;
+    //    cout << tau_motion << endl;
 
     // Just gravity compensation
     //tau_motion = Eigen::VectorXd::Zero( myLBR->nq );
@@ -566,40 +430,6 @@ void MyLBRClient::command()
     tau_previous = tau_motion;
     tau_prev_prev = tau_previous;
 
-    // Check if Button Pressed
-    if( robotState().getBooleanIOValue( "MediaFlange.UserButton" ) && !is_pressed )
-    {
-        is_pressed = true;
-
-        // Turn on imitation learning
-        cout << "Button Pressed!" << std::endl;
-    }
-
-    // If button pressed
-    if( is_pressed )
-    {
-        // Update time for t_pressed
-        t_pressed += sampleTime;
-
-        // Change 1 to 2 to make it slower
-        if ( t_pressed >= 2 )
-        {
-            // Update rate of n_step.
-            if (  ( n_step % 1 ) == 0 )
-            {
-                N_curr++;
-
-                // The N_curr must not exceed the column size.
-                if( N_curr >= N_data )
-                {
-                    N_curr = N_data-1;
-                }
-            }
-        }
-
-    }
-
-    n_step++;
     currentTime = currentTime + sampleTime;
 
 }
@@ -612,6 +442,9 @@ void MyLBRClient::impedanceOptimizer()
 
         // Calculate standard Hessian
         Eigen::MatrixXd kq = J.transpose() * K * J;
+
+        cout << "kq:" << endl;
+        cout << kq << endl;
 
         // Christoffel symbols based on Kinematic Connection for Hybrid Jacobian
         Eigen::MatrixXd CS = Eigen::MatrixXd::Zero( 6, 6 );
@@ -645,7 +478,7 @@ void MyLBRClient::impedanceOptimizer()
         K_kin = K_kin + J.transpose() * CS * J;
         Eigen::MatrixXd K_final = K_kin + kq;
 
-        // Damping design
+        // Calculate Damping
         Eigen::MatrixXd sqrt_M = Eigen::MatrixXd::Zero( 7, 7 );
         for(int i=0; i<7; i++)
         {
@@ -693,6 +526,7 @@ void MyLBRClient::impedanceOptimizer()
         mutex.lock();
 
         Kq_thread = K_final;
+        //        Kq_thread = kq;
         Bq_thread = bq;
         K_kin_thread = K_kin;
 
